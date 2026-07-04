@@ -14,8 +14,8 @@
 
 // 👉 ĐIỀN 2 GIÁ TRỊ NÀY SAU KHI TẠO PROJECT SUPABASE
 // (Lấy ở: Supabase Dashboard → Project Settings → API)
-const SUPABASE_URL = 'https://yzmdxyxdzksleslwiyjg.supabase.co';       // VD: https://abcdxyz.supabase.co
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6bWR4eXhkemtzbGVzbHdpeWpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxMjc4NjIsImV4cCI6MjA5ODcwMzg2Mn0.JFVxV4Ti1EbNZT-uWxRDDbcQ_RdX3w2LxEZ8rVTjMxU';  // VD: eyJhbGciOi... (anon public key)
+const SUPABASE_URL = 'https://yzmdxyxdzksleslwiyjg.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6bWR4eXhkemtzbGVzbHdpeWpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxMjc4NjIsImV4cCI6MjA5ODcwMzg2Mn0.JFVxV4Ti1EbNZT-uWxRDDbcQ_RdX3w2LxEZ8rVTjMxU';
 
 // Các bảng dữ liệu cần đồng bộ (khớp với object DB trong app)
 const SYNC_TABLES = ['products', 'customers', 'invoices', 'stockImports', 'custOrders', 'settings'];
