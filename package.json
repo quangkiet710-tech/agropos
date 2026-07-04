@@ -1,0 +1,8 @@
+{
+  "name": "agropos",
+  "version": "2.0.0",
+  "description": "Quản lý cửa hàng phân bón – Phân Bón Xanh Việt",
+  "scripts": {
+    "dev": "node server.js"
+  }
+}
