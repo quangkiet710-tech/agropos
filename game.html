@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hệ Thống Thăng Cấp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Philosopher:wght@400;700&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#070b16;
+    --panel:#0e1526;
+    --panel2:#131c33;
+    --line:#22304f;
+    --glow:#5ac8ff;
+    --glow-dim:#2e6fa8;
+    --violet:#a78bfa;
+    --gold:#f2c14e;
+    --text:#dce7f5;
+    --muted:#7c8db0;
+    --danger:#ff6b6b;
+    --ok:#4ade80;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{
+    background:var(--void);
+    color:var(--text);
+    font-family:'Be Vietnam Pro',sans-serif;
+    min-height:100vh;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(90,200,255,.10), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 90% 110%, rgba(167,139,250,.07), transparent 60%);
+  }
+  .wrap{max-width:520px;margin:0 auto;padding:16px 14px 90px}
+  .display{font-family:'Philosopher',sans-serif}
+
+  /* ===== khung hệ thống (system window) ===== */
+  .sys{
+    position:relative;
+    background:linear-gradient(180deg, rgba(90,200,255,.06), rgba(14,21,38,.9));
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:16px;
+    box-shadow:0 0 24px rgba(90,200,255,.06), inset 0 0 30px rgba(90,200,255,.03);
+  }
+  .sys::before,.sys::after{
+    content:"";position:absolute;width:14px;height:14px;
+    border:2px solid var(--glow);opacity:.7;
+  }
+  .sys::before{top:-2px;left:-2px;border-right:none;border-bottom:none;border-radius:6px 0 0 0}
+  .sys::after{bottom:-2px;right:-2px;border-left:none;border-top:none;border-radius:0 0 6px 0}
+
+  .eyebrow{
+    font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--glow);opacity:.85;margin-bottom:6px;font-weight:600;
+  }
+
+  /* ===== onboarding ===== */
+  #onboard{display:flex;flex-direction:column;justify-content:center;min-height:92vh;gap:20px}
+  #onboard h1{font-size:30px;line-height:1.25;text-align:center;
+    background:linear-gradient(90deg,var(--glow),var(--violet));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  #onboard p{text-align:center;color:var(--muted);font-size:14px;line-height:1.6}
+  #onboard input{
+    width:100%;padding:14px;border-radius:8px;border:1px solid var(--line);
+    background:var(--panel);color:var(--text);font-size:16px;text-align:center;
+    font-family:'Be Vietnam Pro',sans-serif;
+  }
+  #onboard input:focus{outline:2px solid var(--glow);border-color:transparent}
+
+  .btn{
+    display:block;width:100%;padding:14px;border-radius:8px;border:1px solid var(--glow-dim);
+    background:linear-gradient(180deg, rgba(90,200,255,.18), rgba(90,200,255,.05));
+    color:var(--glow);font-size:15px;font-weight:600;cursor:pointer;
+    font-family:'Be Vietnam Pro',sans-serif;letter-spacing:.02em;
+    transition:transform .1s;
+  }
+  .btn:active{transform:scale(.98)}
+  .btn.secondary{border-color:var(--line);background:var(--panel2);color:var(--muted)}
+
+  /* ===== header nhân vật ===== */
+  .hero{margin-bottom:14px}
+  .hero-top{display:flex;align-items:center;gap:12px}
+  .rank-badge{
+    width:56px;height:56px;flex:none;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Philosopher',sans-serif;font-size:30px;font-weight:700;
+    border:1.5px solid var(--glow);color:var(--glow);
+    background:radial-gradient(circle at 50% 30%, rgba(90,200,255,.2), transparent 70%);
+    text-shadow:0 0 12px rgba(90,200,255,.8);
+  }
+  .rank-badge.gold{border-color:var(--gold);color:var(--gold);text-shadow:0 0 12px rgba(242,193,78,.8);
+    background:radial-gradient(circle at 50% 30%, rgba(242,193,78,.2), transparent 70%)}
+  .hero-name{font-size:19px;font-weight:700}
+  .hero-sub{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .hero-sub b{color:var(--gold);font-weight:600}
+
+  .expbar{margin-top:12px}
+  .expbar .row{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-bottom:5px}
+  .expbar .track{height:9px;border-radius:99px;background:var(--panel2);border:1px solid var(--line);overflow:hidden}
+  .expbar .fill{height:100%;border-radius:99px;width:0%;
+    background:linear-gradient(90deg,var(--glow-dim),var(--glow));
+    box-shadow:0 0 10px rgba(90,200,255,.6);transition:width .5s ease}
+
+  /* ===== chỉ số ===== */
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+  .stat{
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:10px 8px;text-align:center;
+  }
+  .stat .icon{font-size:20px}
+  .stat .val{font-family:'Philosopher',sans-serif;font-size:22px;font-weight:700;margin:2px 0}
+  .stat .lbl{font-size:10.5px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+  .stat.str .val{color:#ff9d6b}.stat.int .val{color:var(--glow)}.stat.wil .val{color:var(--violet)}
+
+  .streak{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    font-size:13px;color:var(--muted);margin-bottom:16px;
+  }
+  .streak b{color:var(--gold)}
+
+  /* ===== tabs ===== */
+  .tabs{display:flex;gap:8px;margin-bottom:14px}
+  .tab{
+    flex:1;padding:10px;border-radius:8px;border:1px solid var(--line);
+    background:var(--panel);color:var(--muted);font-size:13.5px;font-weight:600;
+    cursor:pointer;text-align:center;font-family:'Be Vietnam Pro',sans-serif;
+  }
+  .tab.active{border-color:var(--glow-dim);color:var(--glow);
+    background:linear-gradient(180deg, rgba(90,200,255,.12), var(--panel))}
+
+  /* ===== nhiệm vụ ===== */
+  .qgroup{margin-bottom:16px}
+  .qgroup h3{font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--muted);margin-bottom:8px;font-weight:600}
+  .quest{
+    display:flex;align-items:center;gap:12px;
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:12px;margin-bottom:8px;cursor:pointer;transition:opacity .2s;
+  }
+  .quest .check{
+    width:24px;height:24px;flex:none;border-radius:6px;border:1.5px solid var(--glow-dim);
+    display:flex;align-items:center;justify-content:center;font-size:14px;color:transparent;
+  }
+  .quest.done{opacity:.5}
+  .quest.done .check{background:var(--glow);border-color:var(--glow);color:#04101f}
+  .quest.done .qname{text-decoration:line-through}
+  .qbody{flex:1;min-width:0}
+  .qname{font-size:14px;font-weight:500;line-height:1.35}
+  .qmeta{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .qmeta .exp{color:var(--gold);font-weight:600}
+  .qdel{
+    flex:none;width:28px;height:28px;border-radius:6px;border:none;background:transparent;
+    color:var(--muted);font-size:16px;cursor:pointer;
+  }
+  .empty{
+    text-align:center;color:var(--muted);font-size:13.5px;line-height:1.6;
+    padding:24px 12px;border:1px dashed var(--line);border-radius:10px;
+  }
+
+  /* ===== thành tựu ===== */
+  .ach{
+    display:flex;align-items:center;gap:12px;background:var(--panel);
+    border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:8px;opacity:.45;
+  }
+  .ach.unlocked{opacity:1;border-color:rgba(242,193,78,.4)}
+  .ach .aicon{font-size:24px;flex:none}
+  .ach .aname{font-size:14px;font-weight:600}
+  .ach.unlocked .aname{color:var(--gold)}
+  .ach .adesc{font-size:12px;color:var(--muted);margin-top:2px}
+
+  /* ===== nút thêm & modal ===== */
+  .fab{
+    position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+    width:min(492px,calc(100% - 28px));z-index:40;
+  }
+  .modal-bg{
+    position:fixed;inset:0;background:rgba(4,8,18,.8);backdrop-filter:blur(3px);
+    display:none;align-items:flex-end;justify-content:center;z-index:50;
+  }
+  .modal-bg.open{display:flex}
+  .modal{
+    width:min(520px,100%);background:var(--panel);border:1px solid var(--line);
+    border-radius:16px 16px 0 0;padding:20px 16px 28px;
+  }
+  .modal h2{font-family:'Philosopher',sans-serif;font-size:19px;margin-bottom:16px;color:var(--glow)}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:6px;font-weight:500}
+  .field input{
+    width:100%;padding:12px;border-radius:8px;border:1px solid var(--line);
+    background:var(--panel2);color:var(--text);font-size:15px;font-family:'Be Vietnam Pro',sans-serif;
+  }
+  .field input:focus{outline:2px solid var(--glow);border-color:transparent}
+  .chips{display:flex;gap:8px}
+  .chip{
+    flex:1;padding:10px 6px;border-radius:8px;border:1px solid var(--line);
+    background:var(--panel2);color:var(--muted);font-size:12.5px;font-weight:600;
+    cursor:pointer;text-align:center;font-family:'Be Vietnam Pro',sans-serif;
+  }
+  .chip.active{border-color:var(--glow);color:var(--glow)}
+
+  /* ===== thông báo hệ thống ===== */
+  #toasts{position:fixed;top:14px;left:50%;transform:translateX(-50%);
+    width:min(480px,calc(100% - 24px));z-index:100;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+  .toast{
+    background:linear-gradient(180deg, rgba(90,200,255,.14), rgba(10,16,30,.96));
+    border:1px solid var(--glow-dim);border-radius:10px;padding:12px 14px;
+    box-shadow:0 0 28px rgba(90,200,255,.25);
+    animation:tin .3s ease, tout .4s ease 3.6s forwards;
+  }
+  .toast .t-head{font-size:10.5px;letter-spacing:.16em;color:var(--glow);
+    text-transform:uppercase;font-weight:700;margin-bottom:3px}
+  .toast .t-body{font-size:13.5px;line-height:1.45}
+  .toast.gold{border-color:rgba(242,193,78,.6);box-shadow:0 0 28px rgba(242,193,78,.25);
+    background:linear-gradient(180deg, rgba(242,193,78,.14), rgba(10,16,30,.96))}
+  .toast.gold .t-head{color:var(--gold)}
+  @keyframes tin{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
+  @keyframes tout{to{opacity:0;transform:translateY(-8px)}}
+
+  /* ===== level up overlay ===== */
+  #lvlup{
+    position:fixed;inset:0;background:rgba(4,8,18,.88);z-index:120;
+    display:none;align-items:center;justify-content:center;text-align:center;
+  }
+  #lvlup.open{display:flex}
+  #lvlup .inner{animation:pop .5s ease}
+  #lvlup .big{
+    font-family:'Philosopher',sans-serif;font-size:52px;font-weight:700;
+    background:linear-gradient(90deg,var(--glow),var(--violet),var(--gold));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:none;filter:drop-shadow(0 0 24px rgba(90,200,255,.5));
+  }
+  #lvlup .sub{color:var(--muted);margin-top:8px;font-size:15px}
+  #lvlup .sub b{color:var(--gold)}
+  @keyframes pop{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none!important;transition:none!important}
+  }
+</style>
+</head>
+<body>
+
+<div id="toasts"></div>
+
+<div id="lvlup" onclick="this.classList.remove('open')">
+  <div class="inner">
+    <div class="eyebrow">⟨ Hệ Thống ⟩</div>
+    <div class="big" id="lvlup-text">THĂNG CẤP!</div>
+    <div class="sub" id="lvlup-sub"></div>
+    <div class="sub" style="margin-top:20px;font-size:12px">chạm để tiếp tục</div>
+  </div>
+</div>
+
+<!-- ====== MÀN HÌNH NHẬP TÊN ====== -->
+<div class="wrap" id="onboard" style="display:none">
+  <div class="sys">
+    <div class="eyebrow">⟨ Hệ Thống ⟩ Thông báo</div>
+    <h1 class="display">Bạn đã được chọn<br>làm Người Chơi</h1>
+    <p style="margin-top:12px">Hoàn thành nhiệm vụ ngoài đời thật để nhận EXP,<br>tăng chỉ số và thăng hạng từ <b style="color:var(--glow)">E</b> lên <b style="color:var(--gold)">S</b>.</p>
+  </div>
+  <input id="name-input" maxlength="20" placeholder="Nhập tên nhân vật của bạn...">
+  <button class="btn" onclick="startGame()">⚔ Chấp nhận trở thành Người Chơi</button>
+</div>
+
+<!-- ====== MÀN HÌNH CHÍNH ====== -->
+<div class="wrap" id="main" style="display:none">
+
+  <div class="sys hero">
+    <div class="hero-top">
+      <div class="rank-badge" id="rank-badge">E</div>
+      <div>
+        <div class="hero-name display" id="p-name">—</div>
+        <div class="hero-sub">Cấp <b id="p-level">1</b> · Hạng <span id="p-rank">E</span> — <span id="p-title">Người Mới Thức Tỉnh</span></div>
+      </div>
+    </div>
+    <div class="expbar">
+      <div class="row"><span>EXP</span><span id="exp-text">0 / 100</span></div>
+      <div class="track"><div class="fill" id="exp-fill"></div></div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat str"><div class="icon">💪</div><div class="val" id="s-str">0</div><div class="lbl">Thể Lực</div></div>
+    <div class="stat int"><div class="icon">📖</div><div class="val" id="s-int">0</div><div class="lbl">Trí Tuệ</div></div>
+    <div class="stat wil"><div class="icon">🔥</div><div class="val" id="s-wil">0</div><div class="lbl">Ý Chí</div></div>
+  </div>
+
+  <div class="streak">🔥 Chuỗi ngày liên tiếp: <b id="p-streak">0</b> ngày</div>
+
+  <div class="tabs">
+    <button class="tab active" id="tab-q" onclick="switchTab('q')">⚔ Nhiệm Vụ Hôm Nay</button>
+    <button class="tab" id="tab-a" onclick="switchTab('a')">🏆 Thành Tựu</button>
+  </div>
+
+  <div id="view-q"></div>
+  <div id="view-a" style="display:none"></div>
+
+  <div class="fab" id="fab">
+    <button class="btn" onclick="openModal()">＋ Tạo nhiệm vụ riêng</button>
+  </div>
+</div>
+
+<!-- ====== MODAL THÊM NHIỆM VỤ ====== -->
+<div class="modal-bg" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h2>⟨ Hệ Thống ⟩ Nhiệm vụ mới</h2>
+    <div class="field">
+      <label>Tên nhiệm vụ</label>
+      <input id="q-name" maxlength="60" placeholder="Ví dụ: Chạy bộ 3km">
+    </div>
+    <div class="field">
+      <label>Loại chỉ số nhận được</label>
+      <div class="chips" id="chips-cat">
+        <button class="chip active" data-v="str" onclick="pickChip(this,'cat')">💪 Thể Lực</button>
+        <button class="chip" data-v="int" onclick="pickChip(this,'cat')">📖 Trí Tuệ</button>
+        <button class="chip" data-v="wil" onclick="pickChip(this,'cat')">🔥 Ý Chí</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Độ khó</label>
+      <div class="chips" id="chips-diff">
+        <button class="chip active" data-v="10" onclick="pickChip(this,'diff')">Dễ · 10 EXP</button>
+        <button class="chip" data-v="25" onclick="pickChip(this,'diff')">Vừa · 25 EXP</button>
+        <button class="chip" data-v="50" onclick="pickChip(this,'diff')">Khó · 50 EXP</button>
+      </div>
+    </div>
+    <button class="btn" onclick="addQuest()">Lưu nhiệm vụ</button>
+    <button class="btn secondary" style="margin-top:8px" onclick="closeModal()">Hủy</button>
+  </div>
+</div>
+
+<script>
+/* ================= DỮ LIỆU ================= */
+const CATS = {
+  str:{label:'Thể Lực',icon:'💪'},
+  int:{label:'Trí Tuệ',icon:'📖'},
+  wil:{label:'Ý Chí',icon:'🔥'},
+};
+
+const PRESETS = [
+  {id:'p1',cat:'str',name:'Tập thể dục 20 phút',exp:25},
+  {id:'p2',cat:'str',name:'Đi bộ ít nhất 5.000 bước',exp:15},
+  {id:'p3',cat:'str',name:'Uống đủ 2 lít nước',exp:10},
+  {id:'p4',cat:'int',name:'Đọc sách 15 phút',exp:20},
+  {id:'p5',cat:'int',name:'Học một điều mới trong 30 phút',exp:30},
+  {id:'p6',cat:'wil',name:'Dậy trước 6 giờ sáng',exp:25},
+  {id:'p7',cat:'wil',name:'Thiền hoặc tĩnh tâm 10 phút',exp:15},
+  {id:'p8',cat:'wil',name:'Không lướt mạng xã hội quá 1 tiếng',exp:30},
+];
+
+const RANKS = [
+  {min:50,r:'S',title:'Quân Chủ Bóng Tối'},
+  {min:35,r:'A',title:'Thợ Săn Thượng Đẳng'},
+  {min:20,r:'B',title:'Chiến Binh Tinh Anh'},
+  {min:10,r:'C',title:'Thợ Săn Trưởng Thành'},
+  {min:5, r:'D',title:'Người Chơi Kiên Trì'},
+  {min:1, r:'E',title:'Người Mới Thức Tỉnh'},
+];
+
+const ACHIEVEMENTS = [
+  {id:'first', icon:'⚔', name:'Bước Chân Đầu Tiên', desc:'Hoàn thành nhiệm vụ đầu tiên', check:s=>s.totalDone>=1},
+  {id:'q25',   icon:'🗡', name:'Thợ Săn Chăm Chỉ',   desc:'Hoàn thành 25 nhiệm vụ',    check:s=>s.totalDone>=25},
+  {id:'q100',  icon:'🛡', name:'Bậc Thầy Nhiệm Vụ', desc:'Hoàn thành 100 nhiệm vụ',   check:s=>s.totalDone>=100},
+  {id:'lv5',   icon:'✨', name:'Thức Tỉnh',          desc:'Đạt cấp 5',                 check:s=>s.level>=5},
+  {id:'lv10',  icon:'🌟', name:'Tái Thức Tỉnh',      desc:'Đạt cấp 10',                check:s=>s.level>=10},
+  {id:'lv25',  icon:'👑', name:'Huyền Thoại',        desc:'Đạt cấp 25',                check:s=>s.level>=25},
+  {id:'st3',   icon:'🔥', name:'Ngọn Lửa Nhỏ',       desc:'Chuỗi 3 ngày liên tiếp',    check:s=>s.streak>=3},
+  {id:'st7',   icon:'🔥', name:'Ý Chí Sắt Đá',       desc:'Chuỗi 7 ngày liên tiếp',    check:s=>s.streak>=7},
+  {id:'st30',  icon:'💎', name:'Kỷ Luật Tuyệt Đối',  desc:'Chuỗi 30 ngày liên tiếp',   check:s=>s.streak>=30},
+];
+
+const KEY='player-v1';
+let S=null; // trạng thái người chơi
+let modalCat='str', modalDiff=10;
+
+function newState(name){
+  return {
+    name, level:1, exp:0, str:0, int:0, wil:0,
+    streak:0, lastActive:null, today:todayStr(),
+    doneToday:[], customQuests:[], totalDone:0, unlocked:[]
+  };
+}
+function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function yesterdayStr(){ const d=new Date(); d.setDate(d.getDate()-1); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function expNeed(lv){ return lv*100; }
+function rankOf(lv){ for(const r of RANKS){ if(lv>=r.min) return r; } return RANKS[RANKS.length-1]; }
+
+/* ================= LƯU / TẢI ================= */
+async function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(S)); }
+  catch(e){ console.error('Lỗi lưu:',e); }
+}
+async function load(){
+  try{
+    const r = localStorage.getItem(KEY);
+    if(r) return JSON.parse(r);
+  }catch(e){ /* chưa có dữ liệu */ }
+  return null;
+}
+
+/* ================= KHỞI ĐỘNG ================= */
+async function init(){
+  S = await load();
+  if(!S){ document.getElementById('onboard').style.display='flex'; return; }
+  dailyReset();
+  document.getElementById('main').style.display='block';
+  renderAll();
+}
+function dailyReset(){
+  const t = todayStr();
+  if(S.today !== t){
+    // nếu hôm qua không hoạt động → mất chuỗi
+    if(S.lastActive !== yesterdayStr() && S.lastActive !== t){ S.streak = 0; }
+    S.today = t;
+    S.doneToday = [];
+    save();
+  }
+}
+async function startGame(){
+  const name = document.getElementById('name-input').value.trim() || 'Người Chơi';
+  S = newState(name);
+  await save();
+  document.getElementById('onboard').style.display='none';
+  document.getElementById('main').style.display='block';
+  renderAll();
+  toast('Chào mừng, '+name+'!','Hành trình thăng cấp bản thân bắt đầu. Hoàn thành nhiệm vụ đầu tiên nào!');
+}
+
+/* ================= NHIỆM VỤ ================= */
+function allQuests(){
+  return [...PRESETS, ...S.customQuests];
+}
+async function completeQuest(id){
+  if(S.doneToday.includes(id)) return;
+  const q = allQuests().find(x=>x.id===id); if(!q) return;
+  S.doneToday.push(id);
+  S.totalDone++;
+  S[q.cat]++;
+  // chuỗi ngày: lần hoàn thành đầu tiên trong ngày
+  if(S.lastActive !== todayStr()){
+    S.streak = (S.lastActive === yesterdayStr()) ? S.streak+1 : 1;
+    S.lastActive = todayStr();
+  }
+  // EXP + thăng cấp
+  S.exp += q.exp;
+  toast('Nhiệm vụ hoàn thành','「'+q.name+'」 · +'+q.exp+' EXP · +1 '+CATS[q.cat].label);
+  let leveled=false, oldRank=rankOf(S.level).r;
+  while(S.exp >= expNeed(S.level)){
+    S.exp -= expNeed(S.level);
+    S.level++; leveled=true;
+  }
+  if(leveled){
+    const nr = rankOf(S.level);
+    const rankUp = nr.r !== oldRank;
+    showLevelUp(rankUp ? 'THĂNG HẠNG '+nr.r+'!' : 'THĂNG CẤP!',
+      'Bạn đã đạt <b>Cấp '+S.level+'</b>'+(rankUp?' — danh hiệu mới: <b>'+nr.title+'</b>':''));
+  }
+  checkAchievements();
+  await save();
+  renderAll();
+}
+async function addQuest(){
+  const name = document.getElementById('q-name').value.trim();
+  if(!name){ toast('Thiếu thông tin','Hãy nhập tên nhiệm vụ trước khi lưu.'); return; }
+  S.customQuests.push({ id:'c'+Date.now(), cat:modalCat, name, exp:modalDiff });
+  await save();
+  closeModal();
+  document.getElementById('q-name').value='';
+  renderQuests();
+  toast('Đã tạo nhiệm vụ','「'+name+'」 đã được thêm vào danh sách hôm nay.');
+}
+async function deleteQuest(id, ev){
+  ev.stopPropagation();
+  S.customQuests = S.customQuests.filter(q=>q.id!==id);
+  await save();
+  renderQuests();
+}
+
+/* ================= THÀNH TỰU ================= */
+function checkAchievements(){
+  for(const a of ACHIEVEMENTS){
+    if(!S.unlocked.includes(a.id) && a.check(S)){
+      S.unlocked.push(a.id);
+      toast('Thành tựu mở khóa', a.icon+' '+a.name+' — '+a.desc, true);
+    }
+  }
+}
+
+/* ================= GIAO DIỆN ================= */
+function renderAll(){ renderHero(); renderQuests(); renderAch(); }
+function renderHero(){
+  const r = rankOf(S.level);
+  document.getElementById('p-name').textContent = S.name;
+  document.getElementById('p-level').textContent = S.level;
+  document.getElementById('p-rank').textContent = r.r;
+  document.getElementById('p-title').textContent = r.title;
+  const badge = document.getElementById('rank-badge');
+  badge.textContent = r.r;
+  badge.className = 'rank-badge' + ((r.r==='S'||r.r==='A')?' gold':'');
+  document.getElementById('s-str').textContent = S.str;
+  document.getElementById('s-int').textContent = S.int;
+  document.getElementById('s-wil').textContent = S.wil;
+  document.getElementById('p-streak').textContent = S.streak;
+  const need = expNeed(S.level);
+  document.getElementById('exp-text').textContent = S.exp+' / '+need;
+  document.getElementById('exp-fill').style.width = Math.min(100, S.exp/need*100)+'%';
+}
+function renderQuests(){
+  const v = document.getElementById('view-q');
+  let html = '';
+  for(const c of ['str','int','wil']){
+    const qs = allQuests().filter(q=>q.cat===c);
+    if(!qs.length) continue;
+    html += '<div class="qgroup"><h3>'+CATS[c].icon+' '+CATS[c].label+'</h3>';
+    for(const q of qs){
+      const done = S.doneToday.includes(q.id);
+      const isCustom = q.id.startsWith('c');
+      html += '<div class="quest'+(done?' done':'')+'" onclick="completeQuest(\''+q.id+'\')">'
+        +'<div class="check">✓</div>'
+        +'<div class="qbody"><div class="qname">'+esc(q.name)+'</div>'
+        +'<div class="qmeta"><span class="exp">+'+q.exp+' EXP</span>'+(isCustom?' · nhiệm vụ riêng':'')+'</div></div>'
+        +(isCustom && !done ? '<button class="qdel" onclick="deleteQuest(\''+q.id+'\',event)" aria-label="Xóa">✕</button>' : '')
+        +'</div>';
+    }
+    html += '</div>';
+  }
+  const total = allQuests().length, done = S.doneToday.length;
+  if(done>=total && total>0){
+    html = '<div class="empty" style="margin-bottom:16px;border-color:rgba(242,193,78,.5);color:var(--gold)">🏆 Bạn đã hoàn thành TẤT CẢ nhiệm vụ hôm nay!<br>Nghỉ ngơi xứng đáng, mai chiến tiếp.</div>' + html;
+  }
+  v.innerHTML = html;
+}
+function renderAch(){
+  const v = document.getElementById('view-a');
+  v.innerHTML = ACHIEVEMENTS.map(a=>{
+    const u = S.unlocked.includes(a.id);
+    return '<div class="ach'+(u?' unlocked':'')+'"><div class="aicon">'+(u?a.icon:'🔒')+'</div>'
+      +'<div><div class="aname">'+a.name+'</div><div class="adesc">'+a.desc+'</div></div></div>';
+  }).join('');
+}
+function switchTab(t){
+  document.getElementById('tab-q').classList.toggle('active', t==='q');
+  document.getElementById('tab-a').classList.toggle('active', t==='a');
+  document.getElementById('view-q').style.display = t==='q'?'block':'none';
+  document.getElementById('view-a').style.display = t==='a'?'block':'none';
+  document.getElementById('fab').style.display = t==='q'?'block':'none';
+}
+
+/* ================= MODAL / TOAST ================= */
+function openModal(){ document.getElementById('modal').classList.add('open'); }
+function closeModal(){ document.getElementById('modal').classList.remove('open'); }
+function pickChip(el, group){
+  const box = document.getElementById(group==='cat'?'chips-cat':'chips-diff');
+  box.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  if(group==='cat') modalCat = el.dataset.v; else modalDiff = parseInt(el.dataset.v);
+}
+function toast(head, body, gold){
+  const t = document.createElement('div');
+  t.className = 'toast'+(gold?' gold':'');
+  t.innerHTML = '<div class="t-head">⟨ Hệ Thống ⟩ '+esc(head)+'</div><div class="t-body">'+body+'</div>';
+  document.getElementById('toasts').appendChild(t);
+  setTimeout(()=>t.remove(), 4200);
+}
+function showLevelUp(title, sub){
+  document.getElementById('lvlup-text').textContent = title;
+  document.getElementById('lvlup-sub').innerHTML = sub;
+  document.getElementById('lvlup').classList.add('open');
+}
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+init();
+</script>
+</body>
+</html>
